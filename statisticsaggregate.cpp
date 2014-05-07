@@ -4,7 +4,7 @@
 
 const size_t BLOCK_SIZE = 10000;
 
-StatisticsAggregate::StatisticsAggregate(double precission): precission(precission)
+StatisticsAggregate::StatisticsAggregate(double precission): precission(precission),standardDeviation(0.0)
 {
 }
 
@@ -24,7 +24,11 @@ void StatisticsAggregate::log(double sum, double sumOfSquares)
 double StatisticsAggregate::getExpectedValue()
 {
   _mutex.lock();
-  double expectedValue = _sum/count;
+  double expectedValue{0};
+  if(count!=0)
+    {
+      expectedValue = _sum/count;
+    }
   _mutex.unlock();
   return expectedValue;
 }

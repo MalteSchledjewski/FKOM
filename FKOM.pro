@@ -25,7 +25,8 @@ SOURCES += main.cpp\
     statisticsaggregate.cpp \
     statisticsagent.cpp \
     erlangc.cpp \
-    erlangb.cpp
+    erlangb.cpp \
+    scheduling.cpp
 
 HEADERS  += \
     eventqueue.h \
@@ -45,4 +46,4 @@ HEADERS  += \
 FORMS    += mainwindow.ui
 
 
-QMAKE_CXXFLAGS += -Wall -Wextra -Weffc++ -std=c++11 -O2
+QMAKE_CXXFLAGS += -Wall -Wextra -Weffc++ -std=c++11 -O3 -flto -march=native

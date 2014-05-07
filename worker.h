@@ -16,9 +16,9 @@ public:
     Worker& operator= (Worker otherWorker);
     Worker& operator= (Worker&& otherWorker);
     bool isWorking();
-    Packet abortPacket();
-    Event workOn(Packet packet);
-    Packet finish();
+    Packet abortPacket(double currentTime);
+    Event workOn(Packet packet,double currentTime);
+    Packet finish(double currentTime);
     int getCurrentPriority();
     bool isPriorityWorker();
     void setIndex(size_t index);

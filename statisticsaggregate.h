@@ -15,7 +15,7 @@ private:
   const double precission;
   double _sum {0};
   double _sumSquare {0};
-  double standardDeviation {0};
+  double standardDeviation;
   size_t count {0};
   std::mutex _mutex {};
 };

@@ -5,36 +5,6 @@ Packet::Packet(Priority priority, double currentTime):priority(priority),state(S
 {
 }
 
-
-//Packet::Packet(const Packet& otherPacket):priority(otherPacket.priority),state(otherPacket.state),timesAborted(otherPacket.timesAborted),timeArrival(otherPacket.timeArrival),timeInQueue(otherPacket.timeInQueue),timeInWorker(otherPacket.timeInWorker),inThisStateSince(otherPacket.inThisStateSince)
-//{
-//}
-
-//Packet::Packet(Packet&& otherPacket):priority(otherPacket.priority),state(otherPacket.state),timesAborted(otherPacket.timesAborted),timeArrival(otherPacket.timeArrival),timeInQueue(otherPacket.timeInQueue),timeInWorker(otherPacket.timeInWorker),inThisStateSince(otherPacket.inThisStateSince)  {
-//}
-
-//Packet& Packet::operator= (const Packet& otherPacket)
-//{
-//  timeArrival = otherPacket.timeArrival;
-//  timesAborted = otherPacket.timesAborted;
-//  timeInQueue = otherPacket.timeInQueue;
-//  timeInWorker = otherPacket.timeInWorker;
-//  inThisStateSince = otherPacket.inThisStateSince;
-//  priority = otherPacket.priority;
-//  return *this;
-//}
-
-//Packet& Packet::operator= (Packet&& otherPacket)
-//{
-//  timeArrival = otherPacket.timeArrival;
-//  timesAborted = otherPacket.timesAborted;
-//  timeInQueue = otherPacket.timeInQueue;
-//  timeInWorker = otherPacket.timeInWorker;
-//  inThisStateSince = otherPacket.inThisStateSince;
-//  priority = otherPacket.priority;
-//  return *this;
-//}
-
 Priority Packet::getPriority()
 {
   return priority;

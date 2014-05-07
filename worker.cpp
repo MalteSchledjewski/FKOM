@@ -15,55 +15,58 @@ Worker::Worker(Worker&& otherWorker) : priorityWorker(otherWorker.priorityWorker
 
 
 Worker& Worker::operator= (Worker otherWorker) {
-    priorityWorker = otherWorker.priorityWorker;
-    working = otherWorker.working;
-    currentPacket = otherWorker.currentPacket;
-    gen = otherWorker.gen;
-    dist = otherWorker.dist;
-    index = otherWorker.index;
-    return *this;
+  priorityWorker = otherWorker.priorityWorker;
+  working = otherWorker.working;
+  currentPacket = otherWorker.currentPacket;
+  gen = otherWorker.gen;
+  dist = otherWorker.dist;
+  index = otherWorker.index;
+  return *this;
 }
 
 Worker& Worker::operator= (Worker&& otherWorker) {
-    priorityWorker = otherWorker.priorityWorker;
-    working = otherWorker.working;
-    currentPacket = otherWorker.currentPacket;
-    gen = otherWorker.gen;
-    dist = otherWorker.dist;
-    index = otherWorker.index;
-    return *this;
+  priorityWorker = otherWorker.priorityWorker;
+  working = otherWorker.working;
+  currentPacket = otherWorker.currentPacket;
+  gen = otherWorker.gen;
+  dist = otherWorker.dist;
+  index = otherWorker.index;
+  return *this;
 }
 
 
 bool Worker::isWorking() {
-    return working;
+  return working;
 }
 
-Packet Worker::abortPacket() {
-    working = false;
-    return currentPacket;
+Packet Worker::abortPacket(double currentTime) {
+  working = false;
+  currentPacket.abort(currentTime);
+  return currentPacket;
 }
 
-Packet Worker::finish() {
-    working = false;
-    return currentPacket;
+Packet Worker::finish(double currentTime) {
+  working = false;
+  currentPacket.finish(currentTime);
+  return currentPacket;
 }
 
 int Worker::getCurrentPriority() {
-    return currentPacket.getPriority();
+  return currentPacket.getPriority();
 }
 
 bool Worker::isPriorityWorker() {
-    return priorityWorker;
+  return priorityWorker;
 }
 
-Event Worker::workOn(Packet packet) {
-    currentPacket = packet;
-    working = true;
-    Event event(EventType::PACKET_FINISHED,packet.getBeginOfState()+dist(gen),index);
-    return event;
+Event Worker::workOn(Packet packet, double currentTime) {
+  packet.work(currentTime);
+  currentPacket = packet;
+  working = true;
+  Event event(EventType::PACKET_FINISHED,packet.getBeginOfState()+dist(gen),index);
+  return event;
 }
 
 void Worker::setIndex(size_t index) {
-    this->index = index;
+  this->index = index;
 }

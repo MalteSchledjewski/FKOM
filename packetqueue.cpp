@@ -4,8 +4,9 @@ PacketQueue::PacketQueue(bool limited, size_t limit, std::function<bool(Packet &
 {
 }
 
-std::shared_ptr<Packet> PacketQueue::addPacket(Packet packet) {
+std::shared_ptr<Packet> PacketQueue::addPacket(Packet packet, double currentTime) {
   //iterate
+  packet.enqueue(currentTime);
   auto iterator = packetQueue.begin();
   while(iterator != packetQueue.end() && (!(earlier(packet,*iterator))))
     {
@@ -15,6 +16,8 @@ std::shared_ptr<Packet> PacketQueue::addPacket(Packet packet) {
   if(limited && packetQueue.size()>limit)
     {
       Packet packet = packetQueue.back();
+      packet.dequeue(currentTime);
+      packet.drop();
       packetQueue.pop_back();
       return std::make_shared<Packet>(packet);
     }
@@ -25,8 +28,9 @@ std::shared_ptr<Packet> PacketQueue::addPacket(Packet packet) {
 
 }
 
-Packet PacketQueue::getNextPacket() {
+Packet PacketQueue::getNextPacket(double currentTime) {
   Packet packet = packetQueue.front();
+  packet.dequeue(currentTime);
   packetQueue.pop_front();
   return packet;
 }
@@ -36,7 +40,7 @@ bool PacketQueue::hasWork() {
 }
 
 bool PacketQueue::canTake(Packet packet) {
-  return( !limited || (packetQueue.size() < limit) || earlier(packet,packetQueue.back()));
+  return !limited || (packetQueue.size() < limit) || (limit != 0 && earlier(packet,packetQueue.back()));
 }
 
 size_t PacketQueue::numberOfPacketsInQueue()

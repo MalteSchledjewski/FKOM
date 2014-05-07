@@ -18,16 +18,16 @@ short Service::whoCanWorkOn(Packet packet) {
     return whichWorkerFun(workers,packet);
 }
 
-Packet Service::finish(size_t index) {
-    return workers[index].finish();
+Packet Service::finish(size_t index, double currentTime) {
+    return workers[index].finish(currentTime);
 }
 
-Packet Service::abortPacket(size_t index) {
-    return workers[index].abortPacket();
+Packet Service::abortPacket(size_t index, double currentTime) {
+    return workers[index].abortPacket(currentTime);
 }
 
-Event Service::workOn(size_t index, Packet packet) {
-    return workers[index].workOn(packet);
+Event Service::workOn(size_t index, Packet packet,double currentTime) {
+    return workers[index].workOn(packet,currentTime);
 }
 
 size_t Service::countActive() {

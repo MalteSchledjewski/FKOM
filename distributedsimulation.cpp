@@ -5,10 +5,10 @@
 
 DistributedSimulation::DistributedSimulation(std::vector<PacketGenerator> packGen, std::vector<Worker> workers,
                                              bool limited, size_t limit, std::function<bool(Packet&,Packet&)> earlier,
-                                             std::function<short(std::vector<Worker>&, Packet&)> whichWorker, const double precision) :
-  precission(precision),statPacketDropped(precission),statPacketsInWorker(precission),statPacketsInQueue(precission),
-  statPacketsInSystem(precission),statTimeInSystem(precission),statTimeInQueue(precission),statTimeInQueueIfWaited(precission),
-  statTimeInWorker(precission),simulationThreads(),_packGen(packGen),_workers(workers),_limited(limited),_limit(limit),
+                                             std::function<short(std::vector<Worker>&, Packet&)> whichWorker,size_t thresh, const double precision) :
+  precission(precision),statPacketDropped(precision),statMoreThanNPackets(precision),statPacketsInWorker(precision),statPacketsInQueue(precision),
+  statPacketsInSystem(precision),statTimeInSystem(precision),statTimeInQueue(precision),statTimeInQueueIfWaited(precision),
+  statTimeInWorker(precision),statFinishedWithoutWating(precision),simulationThreads(),threshold(thresh),_packGen(packGen),_workers(workers),_limited(limited),_limit(limit),
   _earlier(earlier),_whichWorker(whichWorker)
 {
   simulationThreads.reserve(numberOfThreads);
@@ -19,21 +19,25 @@ void DistributedSimulation::printStatistics()
 {
   std::cout << "dropped\t Nqueue\t  N\t   Nwork    Tqueue   Tqonly   T\t\tTwork\n" <<
                std::fixed << statPacketDropped.getStandardDeviation() <<" " <<
+               std::fixed << statMoreThanNPackets.getStandardDeviation() <<" " <<
                std::fixed << statPacketsInQueue.getStandardDeviation() <<" " <<
                std::fixed << statPacketsInSystem.getStandardDeviation() <<" " <<
                std::fixed << statPacketsInWorker.getStandardDeviation() <<" " <<
                std::fixed << statTimeInQueue.getStandardDeviation() <<" " <<
                std::fixed << statTimeInQueueIfWaited.getStandardDeviation() <<" " <<
                std::fixed << statTimeInSystem.getStandardDeviation() <<" " <<
-               std::fixed << statTimeInWorker.getStandardDeviation() << "\n" <<
+               std::fixed << statTimeInWorker.getStandardDeviation()<<" " <<
+               std::fixed << statFinishedWithoutWating.getStandardDeviation() << "\n" <<
                std::fixed << statPacketDropped.getExpectedValue() <<" " <<
+               std::fixed << statMoreThanNPackets.getExpectedValue() <<" " <<
                std::fixed << statPacketsInQueue.getExpectedValue() <<" " <<
                std::fixed << statPacketsInSystem.getExpectedValue() <<" " <<
                std::fixed << statPacketsInWorker.getExpectedValue() <<" " <<
                std::fixed << statTimeInQueue.getExpectedValue() <<" " <<
                std::fixed << statTimeInQueueIfWaited.getExpectedValue() <<" " <<
                std::fixed << statTimeInSystem.getExpectedValue() <<" " <<
-               std::fixed << statTimeInWorker.getExpectedValue() <<"\n" <<
+               std::fixed << statTimeInWorker.getExpectedValue()<<" " <<
+               std::fixed << statFinishedWithoutWating.getExpectedValue() <<"\n" <<
                std::endl;
 
   //TODO
@@ -45,13 +49,15 @@ void DistributedSimulation::printStatistics()
 bool DistributedSimulation::precissionSatisfied()
 {
   return statPacketDropped.precissionSatisfied() &&
+      statMoreThanNPackets.precissionSatisfied() &&
       statPacketsInQueue.precissionSatisfied() &&
       statPacketsInSystem.precissionSatisfied() &&
       statPacketsInWorker.precissionSatisfied() &&
       statTimeInQueue.precissionSatisfied() &&
       statTimeInQueueIfWaited.precissionSatisfied() &&
       statTimeInSystem.precissionSatisfied() &&
-      statTimeInWorker.precissionSatisfied();
+      statTimeInWorker.precissionSatisfied() &&
+      statFinishedWithoutWating.precissionSatisfied();
 }
 
 
@@ -59,6 +65,7 @@ void startSimulation(std::vector<PacketGenerator> packGen, std::vector<Worker> w
                      bool limited, size_t limit, std::function<bool(Packet&,Packet&)> earlier,
                      std::function<short(std::vector<Worker>&, Packet&)> whichWorker,
                      StatisticsAggregate& statPacketDroppedAgg,
+                     StatisticsAggregate& statMoreThanNPacketsAgg,
                      StatisticsAggregate& statPacketsInWorkerAgg,
                      StatisticsAggregate& statPacketsInQueueAgg,
                      StatisticsAggregate& statPacketsInSystemAgg,
@@ -66,10 +73,12 @@ void startSimulation(std::vector<PacketGenerator> packGen, std::vector<Worker> w
                      StatisticsAggregate& statTimeInQueueAgg,
                      StatisticsAggregate& statTimeInQueueIfWaitedAgg,
                      StatisticsAggregate& statTimeInWorkerAgg,
+                     StatisticsAggregate& statFinishedWithoutWaitingAgg,
+                     size_t threshold,
                      DistributedSimulation* parent)
 {
-  Simulation sim(packGen,workers,limited,limit,earlier,whichWorker,statPacketDroppedAgg,statPacketsInWorkerAgg,statPacketsInQueueAgg,
-                 statPacketsInSystemAgg,statTimeInSystemAgg,statTimeInQueueAgg,statTimeInQueueIfWaitedAgg,statTimeInWorkerAgg,parent);
+  Simulation sim(packGen,workers,limited,limit,earlier,whichWorker,statPacketDroppedAgg,statMoreThanNPacketsAgg,statPacketsInWorkerAgg,statPacketsInQueueAgg,
+                 statPacketsInSystemAgg,statTimeInSystemAgg,statTimeInQueueAgg,statTimeInQueueIfWaitedAgg,statTimeInWorkerAgg,statFinishedWithoutWaitingAgg,threshold,parent);
   sim.run();
 }
 
@@ -79,9 +88,10 @@ void DistributedSimulation::run()
     {
       std::cout << "starting worker " << index << std::endl;
       simulationThreads.emplace_back(startSimulation,_packGen,_workers,_limited,_limit,_earlier,_whichWorker,std::ref(statPacketDropped),
+                                     std::ref(statMoreThanNPackets),
                                      std::ref(statPacketsInWorker), std::ref(statPacketsInQueue), std::ref(statPacketsInSystem),
                                      std::ref(statTimeInSystem), std::ref(statTimeInQueue), std::ref(statTimeInQueueIfWaited),
-                                     std::ref(statTimeInWorker),this);
+                                     std::ref(statTimeInWorker),std::ref(statFinishedWithoutWating),threshold,this);
 
     }
 
