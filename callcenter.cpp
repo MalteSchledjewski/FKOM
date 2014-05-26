@@ -6,7 +6,7 @@
 
 int main()
 {
-  double lambda = 10;
+  double lambda = 9;
   double m = 2;
   short numberOfWorker = 5;
   size_t limit = 10;
@@ -19,7 +19,7 @@ int main()
     }
   std::function<bool(Packet&, Packet&)> earlierFun = earlier;
   std::function<short(std::vector<Worker>&,Packet&)> which = whichFree;
-  DistributedSimulation sim(vecPackGen,vecWorker,false,limit,earlierFun,which,5,0.0001);
+  DistributedSimulation sim(vecPackGen,vecWorker,false,limit,earlierFun,which,5,0.001);
   sim.run();
   return 0;
 }

@@ -15,6 +15,7 @@
 #include "eventqueue.h"
 #include "statisticsaggregate.h"
 #include "statisticsagent.h"
+#include "statisticseventgenerator.h"
 
 class DistributedSimulation;
 
@@ -36,11 +37,11 @@ public:
              StatisticsAggregate& statTimeInWorkerAgg,
              StatisticsAggregate& statFinishedWithoutWaitingAgg,
              size_t thresh,
-             DistributedSimulation *parent);
+             DistributedSimulation &parent);
   void run();
 
 private:
-  DistributedSimulation* _parent;
+  DistributedSimulation& _parent;
   EventQueue eventQueue;
   std::vector<PacketGenerator> packetGenerators;
   PacketQueue packetQueue;
@@ -59,6 +60,7 @@ private:
   StatisticsAgent statTimeInWorker;
   StatisticsAgent statFinishedWithoutWaiting;
 
+  StatisticsEventGenerator statisticsEventGenerator;
 
   Event getNextEvent(); // get event from eventQueue
   Event createNextNewPacketEvent(size_t index, double time); // create the new event for the next package

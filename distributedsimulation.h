@@ -43,18 +43,6 @@ private:
   size_t _limit;
   std::function<bool(Packet&,Packet&)> _earlier;
   std::function<short(std::vector<Worker>&, Packet&)> _whichWorker;
-
-//  void startSimulation(std::vector<PacketGenerator> packGen, std::vector<Worker> workers,
-//                       bool limited, size_t limit, std::function<bool(Packet&,Packet&)> earlier,
-//                       std::function<short(std::vector<Worker>&, Packet&)> whichWorker,
-//                       const StatisticsAggregate& statPacketDroppedAgg,
-//                       const StatisticsAggregate& statPacketsInWorkerAgg,
-//                       const StatisticsAggregate& statPacketsInQueueAgg,
-//                       const StatisticsAggregate& statPacketsInSystemAgg,
-//                       const StatisticsAggregate& statTimeInSystemAgg,
-//                       const StatisticsAggregate& statTimeInQueueAgg,
-//                       const StatisticsAggregate& statTimeInQueueIfWaitedAgg,
-//                       const StatisticsAggregate& statTimeInWorkerAgg, DistributedSimulation *parent);
 };
 
 #endif // DISTRIBUTEDSIMULATION_H

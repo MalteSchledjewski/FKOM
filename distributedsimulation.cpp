@@ -75,7 +75,7 @@ void startSimulation(std::vector<PacketGenerator> packGen, std::vector<Worker> w
                      StatisticsAggregate& statTimeInWorkerAgg,
                      StatisticsAggregate& statFinishedWithoutWaitingAgg,
                      size_t threshold,
-                     DistributedSimulation* parent)
+                     DistributedSimulation& parent)
 {
   Simulation sim(packGen,workers,limited,limit,earlier,whichWorker,statPacketDroppedAgg,statMoreThanNPacketsAgg,statPacketsInWorkerAgg,statPacketsInQueueAgg,
                  statPacketsInSystemAgg,statTimeInSystemAgg,statTimeInQueueAgg,statTimeInQueueIfWaitedAgg,statTimeInWorkerAgg,statFinishedWithoutWaitingAgg,threshold,parent);
@@ -91,7 +91,7 @@ void DistributedSimulation::run()
                                      std::ref(statMoreThanNPackets),
                                      std::ref(statPacketsInWorker), std::ref(statPacketsInQueue), std::ref(statPacketsInSystem),
                                      std::ref(statTimeInSystem), std::ref(statTimeInQueue), std::ref(statTimeInQueueIfWaited),
-                                     std::ref(statTimeInWorker),std::ref(statFinishedWithoutWating),threshold,this);
+                                     std::ref(statTimeInWorker),std::ref(statFinishedWithoutWating),threshold,std::ref(*this));
 
     }
 

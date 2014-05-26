@@ -1,52 +1,62 @@
 #include "service.h"
 
-Service::Service(std::vector<Worker> worker, std::function<short(std::vector<Worker> &,Packet&)> wWorker):workers(worker),whichWorkerFun(wWorker)
+Service::Service(std::vector<Worker> worker, std::function<short(std::vector<Worker> &,Packet&)> wWorker):maxLambda([&]()->double {
+                                                                                                                    double maxLam = 0;
+                                                                                                                    for(size_t i = 0; i<workers.size();++i)
 {
-    for(size_t i = 0; i<workers.size();++i)
+  if(workers[i].lambda > maxLam)
     {
-        workers[i].setIndex(i);
+      maxLam = workers[i].lambda;
+    }
+}
+return maxLam;
+}()) ,workers(worker),whichWorkerFun(wWorker)
+{
+  for(size_t i = 0; i<workers.size();++i)
+    {
+      workers[i].setIndex(i);
     }
 }
 
 
 bool Service::isWorkerReady(size_t index) {
-    return !workers[index].isWorking();
+  return !workers[index].isWorking();
 }
 
 
 short Service::whoCanWorkOn(Packet packet) {
-    return whichWorkerFun(workers,packet);
+  return whichWorkerFun(workers,packet);
 }
 
 Packet Service::finish(size_t index, double currentTime) {
-    return workers[index].finish(currentTime);
+  return workers[index].finish(currentTime);
 }
 
 Packet Service::abortPacket(size_t index, double currentTime) {
-    return workers[index].abortPacket(currentTime);
+  return workers[index].abortPacket(currentTime);
 }
 
 Event Service::workOn(size_t index, Packet packet,double currentTime) {
-    return workers[index].workOn(packet,currentTime);
+  return workers[index].workOn(packet,currentTime);
 }
 
 size_t Service::countActive() {
-    size_t count = 0;
-    for(Worker& worker :  workers) {
-        if(worker.isWorking()) {
-            ++count;
+  size_t count = 0;
+  for(Worker& worker :  workers) {
+      if(worker.isWorking()) {
+          ++count;
         }
     }
-    return count;
+  return count;
 }
 
 
 size_t Service::countIdle() {
-    size_t count = 0;
-    for(Worker& worker :  workers) {
-        if(!worker.isWorking()) {
-            ++count;
+  size_t count = 0;
+  for(Worker& worker :  workers) {
+      if(!worker.isWorking()) {
+          ++count;
         }
     }
-    return count;
+  return count;
 }

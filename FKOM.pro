@@ -26,7 +26,8 @@ SOURCES += main.cpp\
     statisticsagent.cpp \
     erlangc.cpp \
     erlangb.cpp \
-    scheduling.cpp
+    scheduling.cpp \
+    statisticseventgenerator.cpp
 
 HEADERS  += \
     eventqueue.h \
@@ -41,7 +42,8 @@ HEADERS  += \
     statisticsaggregate.h \
     statisticsagent.h \
     erlangc.h \
-    erlangb.h
+    erlangb.h \
+    statisticseventgenerator.h
 
 FORMS    += mainwindow.ui
 

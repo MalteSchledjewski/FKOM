@@ -1,7 +1,7 @@
 #ifndef PACKETGENERATOR_H
 #define PACKETGENERATOR_H
 
-#include "random"
+#include <random>
 
 #include "event.h"
 #include "packet.h"
@@ -17,6 +17,7 @@ public:
     PacketGenerator& operator= (PacketGenerator&& otherPacketGenerator);
     Packet getPacket(double time);
     Event getNextPacketEvent(double time, size_t index);
+    const double lambda;
 private:
     Priority priority;
     std::random_device rd;

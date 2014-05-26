@@ -13,8 +13,8 @@ public:
     Worker(double lambda,bool isPriority = false);
     Worker(const Worker& otherWorker);
     Worker(Worker&& otherWorker);
-    Worker& operator= (Worker otherWorker);
-    Worker& operator= (Worker&& otherWorker);
+    Worker& operator= (Worker& otherWorker) = default;
+    Worker& operator= (Worker&& otherWorker) = default;
     bool isWorking();
     Packet abortPacket(double currentTime);
     Event workOn(Packet packet,double currentTime);
@@ -22,6 +22,7 @@ public:
     int getCurrentPriority();
     bool isPriorityWorker();
     void setIndex(size_t index);
+    const double lambda;
 private:
     bool priorityWorker;
     bool working;

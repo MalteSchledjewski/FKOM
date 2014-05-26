@@ -3,7 +3,7 @@
 #include <cstdlib>
 
 enum EventType {
-    NEW_PACKET, PACKET_FINISHED
+    NEW_PACKET, PACKET_FINISHED, COUNT
 };
 
 class Event
