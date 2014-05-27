@@ -26,7 +26,7 @@ statPacketsInSystem(statPacketsInWorker),statTimeInSystem(statTimeInWorker)
 
 void ErlangB::printStatistics()
 {
-  std::cout << "dropped\t Nqueue\t  N\t   Nwork    Tqueue   Tqonly   T\t\tTwork\n" <<
+  std::cout << "dropped   Nqueue   Nsystem  Nwork    Tqueue   Tqonly   Tsystem  Twork    P!waited\n" <<
              std::fixed << statPacketDropped <<" " <<
              std::fixed << statPacketsInQueue <<" " <<
              std::fixed << statPacketsInSystem <<" " <<

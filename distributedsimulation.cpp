@@ -17,7 +17,7 @@ DistributedSimulation::DistributedSimulation(std::vector<PacketGenerator> packGe
 
 void DistributedSimulation::printStatistics()
 {
-  std::cout << "dropped\t Nqueue\t  N\t   Nwork    Tqueue   Tqonly   T\t\tTwork\n" <<
+  std::cout << "dropped   P>n     Nqueue   Nsystem  Nwork    Tqueue   Tqonly   Tsystem  Twork    P!waited\n" <<
                std::fixed << statPacketDropped.getStandardDeviation() <<" " <<
                std::fixed << statMoreThanNPackets.getStandardDeviation() <<" " <<
                std::fixed << statPacketsInQueue.getStandardDeviation() <<" " <<

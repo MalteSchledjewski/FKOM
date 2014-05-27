@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-const size_t BLOCK_SIZE = 10000;
+const size_t BLOCK_SIZE = 100000;
 
 StatisticsAggregate::StatisticsAggregate(double precission): precission(precission),standardDeviation(0.0)
 {

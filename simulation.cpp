@@ -58,7 +58,6 @@ void Simulation::registerEvent(Event event) {
   eventQueue.addEvent(event);
 }
 
-
 void Simulation::removePacketEvent(size_t index) {
   eventQueue.resetWorker(index);
 }
@@ -84,9 +83,128 @@ bool Simulation::queueCanTake(Packet packet) {
   return packetQueue.canTake(packet);
 }
 
-
 std::shared_ptr<Packet> Simulation::enqueue(Packet packet, double currentTime) {
   return packetQueue.addPacket(packet,currentTime);
+}
+
+void Simulation::logDroppedPacket(double currentTime, std::shared_ptr<Packet> lostPacket)
+{
+  statPacketDropped.log(1.0);
+  statFinishedWithoutWaiting.log(0.0);
+  if(currentTime != lostPacket->getArrivalTime())
+    {
+      double timeInWorker = lostPacket->getTimeInWorker();
+      double timeInQueue = lostPacket->getTimeInQueue();
+      statTimeInSystem.log(timeInWorker + timeInQueue);
+      statTimeInQueue.log(timeInQueue);
+      if(timeInQueue != 0.0)
+        {
+          statTimeInQueueIfWaited.log(timeInQueue);
+        }
+      statTimeInWorker.log(timeInWorker);
+    }
+}
+
+void Simulation::logFinishedPacket(Packet finishedPacket)
+{
+  {
+    statPacketDropped.log(0.0);
+    double timeInWorker = finishedPacket.getTimeInWorker();
+    double timeInQueue = finishedPacket.getTimeInQueue();
+    statTimeInSystem.log(timeInWorker + timeInQueue);
+    statTimeInQueue.log(timeInQueue);
+    if(timeInQueue != 0.0)
+      {
+        statTimeInQueueIfWaited.log(timeInQueue);
+        statFinishedWithoutWaiting.log(0.0);
+      }
+    else
+      {
+        statFinishedWithoutWaiting.log(1.0);
+      }
+    statTimeInWorker.log(timeInWorker);
+  }
+}
+
+void Simulation::logCount()
+{
+  double packetsInWorker = service.countActive();
+  double packetsInQueue = packetQueue.numberOfPacketsInQueue();
+  if(packetsInQueue < threshold)
+    {
+      statMoreThanNPackets.log(0.);
+    }
+  else
+    {
+      statMoreThanNPackets.log(1.);
+    }
+  statPacketsInWorker.log(packetsInWorker);
+  statPacketsInQueue.log(packetsInQueue);
+  statPacketsInSystem.log(packetsInQueue + packetsInWorker);
+}
+
+void Simulation::handleNewPacketEvent(double currentTime, Event event)
+{
+  Packet packet = getNewPacket(event);
+  short workerIndex = whoCanWorkOnPacket(packet);
+  if(workerIndex == -1)
+    {
+      std::shared_ptr<Packet> lostPacket = enqueue(packet,currentTime);
+      if(lostPacket != nullptr)
+        {
+          logDroppedPacket(currentTime, lostPacket);
+        }
+    }
+  else
+    {
+      if(!service.isWorkerReady(workerIndex))
+        {
+          Packet oldPacket = abortWorker(workerIndex,currentTime);
+          Event packetFinishedEvent = workOnPacket(workerIndex,packet,currentTime);
+          registerEvent(packetFinishedEvent);
+          std::shared_ptr<Packet> packetPointer = assign(oldPacket,currentTime);
+          if(packetPointer!=nullptr)
+            {
+              oldPacket = *packetPointer;
+              std::shared_ptr<Packet> lostPacket = enqueue(oldPacket,currentTime);
+              if(lostPacket != nullptr)
+                {
+                  logDroppedPacket(currentTime, lostPacket);
+                }
+            }
+        }
+      else
+        {
+          Event packetFinishedEvent = workOnPacket(workerIndex,packet,currentTime);
+          registerEvent(packetFinishedEvent);
+        }
+    }
+}
+
+void Simulation::handlePacketFinishedEvent(Event event, double currentTime)
+{
+  Packet finishedPacket = finishWorker(event.index,currentTime);
+  logFinishedPacket(finishedPacket);
+  if(packetQueue.hasWork())
+    {
+      Packet nextPacket = getNextFromQueue(currentTime);
+      if(whoCanWorkOnPacket(nextPacket) == event.index)
+        {
+          Event nextEvent = workOnPacket(event.index,nextPacket,currentTime);
+          registerEvent(nextEvent);
+        }
+      else
+        {
+          enqueue(nextPacket,currentTime);
+        }
+    }
+}
+
+void Simulation::handleCountEvent(Event event)
+{
+  logCount();
+  Event newEvent = statisticsEventGenerator.getNextStatisticsEvent(event.time);
+  registerEvent(newEvent);
 }
 
 void Simulation::run() {
@@ -94,156 +212,18 @@ void Simulation::run() {
       for(size_t numberOfIterations = 0;numberOfIterations<10000000;++numberOfIterations) {
           Event event = getNextEvent();
           double currentTime = event.time;
-
           if(event.eventType == EventType::NEW_PACKET)
             {
-              Packet packet = getNewPacket(event);
-              short workerIndex = whoCanWorkOnPacket(packet);
-              if(workerIndex == -1)
-                {
-                  if(queueCanTake(packet))
-                    {
-                      enqueue(packet,currentTime);
-                      //                      std::cout << "New packet -> Queue\n";
-                    }
-                  else
-                    {
-                      std::shared_ptr<Packet> lostPacket = enqueue(packet,currentTime);
-                      //                      std::cout << "New packet -> Queue, lost 1\n";
-                      statPacketDropped.log(1.0);
-                      statFinishedWithoutWaiting.log(0.0);
-                      if(currentTime != lostPacket->getArrivalTime())
-                        {
-
-                          {
-                            double timeInWorker = lostPacket->getTimeInWorker();
-                            double timeInQueue = lostPacket->getTimeInQueue();
-                            statTimeInSystem.log(timeInWorker + timeInQueue);
-                            statTimeInQueue.log(timeInQueue);
-                            if(timeInQueue != 0.0)
-                              {
-                                statTimeInQueueIfWaited.log(timeInQueue);
-                              }
-                            statTimeInWorker.log(timeInWorker);
-                          }
-
-                          //drop lostPacket
-                        }
-                    }
-                }
-              else
-                {
-
-                  if(!service.isWorkerReady(workerIndex))
-                    {
-
-                      //                      std::cout << "New packet -> Working\n";
-                      Packet oldPacket = abortWorker(workerIndex,currentTime);
-
-                      Event packetFinishedEvent = workOnPacket(workerIndex,packet,currentTime);
-                      registerEvent(packetFinishedEvent);
-
-                      std::shared_ptr<Packet> packetPointer = assign(oldPacket,currentTime);
-
-                      if(packetPointer!=nullptr)
-                        {
-                          oldPacket = *packetPointer;
-                          if(queueCanTake(oldPacket))
-                            {
-                              enqueue(oldPacket,currentTime);
-                              //                              std::cout << "old packet -> Queue\n";
-                            }
-                          else
-                            {
-                              std::shared_ptr<Packet> lostPacket = enqueue(oldPacket,currentTime);
-                              //drop lostPacket
-                              statPacketDropped.log(1.0);
-                              statFinishedWithoutWaiting.log(0.0);
-                              {
-                                double timeInWorker = lostPacket->getTimeInWorker();
-                                double timeInQueue = lostPacket->getTimeInQueue();
-                                statTimeInSystem.log(timeInWorker + timeInQueue);
-                                statTimeInQueue.log(timeInQueue);
-                                if(timeInQueue != 0.0)
-                                  {
-                                    statTimeInQueueIfWaited.log(timeInQueue);
-                                  }
-                                statTimeInWorker.log(timeInWorker);
-                              }
-                              //                              std::cout << "old packet lost\n";
-                            }
-                        }
-                    }
-                  else
-                    {
-                      Event packetFinishedEvent = workOnPacket(workerIndex,packet,currentTime);
-                      registerEvent(packetFinishedEvent);
-                      //                      std::cout << "New packet -> Working\n";
-                    }
-
-
-
-                }
-
+              handleNewPacketEvent(currentTime, event);
             }
           else {
               if(event.eventType == EventType::PACKET_FINISHED)
                 {
-                  //              std::cout << "finished packet\n";
-                  statPacketDropped.log(0.0);
-                  Packet finishedPacket = finishWorker(event.index,currentTime);
-                  {
-                    double timeInWorker = finishedPacket.getTimeInWorker();
-                    double timeInQueue = finishedPacket.getTimeInQueue();
-                    statTimeInSystem.log(timeInWorker + timeInQueue);
-                    statTimeInQueue.log(timeInQueue);
-                    if(timeInQueue != 0.0)
-                      {
-                        statTimeInQueueIfWaited.log(timeInQueue);
-                        statFinishedWithoutWaiting.log(0.0);
-                      }
-                    else
-                      {
-
-                        statFinishedWithoutWaiting.log(1.0);
-                      }
-                    statTimeInWorker.log(timeInWorker);
-                  }
-                  //log finishedPacket
-                  if(packetQueue.hasWork())
-                    {
-                      //                  std::cout << "Queue -> Work\n";
-                      Packet nextPacket = getNextFromQueue(currentTime);
-                      if(whoCanWorkOnPacket(nextPacket) == event.index)
-                        {
-                          Event nextEvent = workOnPacket(event.index,nextPacket,currentTime);
-                          registerEvent(nextEvent);
-                        }
-                      else
-                        {
-                          enqueue(nextPacket,currentTime);
-                        }
-                    }
+                  handlePacketFinishedEvent(event, currentTime);
                 }
               else
                 {
-
-                  double packetsInWorker = service.countActive();
-                  double packetsInQueue = packetQueue.numberOfPacketsInQueue();
-                  if(packetsInQueue < threshold)
-                    {
-                      statMoreThanNPackets.log(0.);
-                    }
-                  else
-                    {
-                      statMoreThanNPackets.log(1.);
-                    }
-                  statPacketsInWorker.log(packetsInWorker);
-                  statPacketsInQueue.log(packetsInQueue);
-                  statPacketsInSystem.log(packetsInQueue + packetsInWorker);
-
-                  Event newEvent = statisticsEventGenerator.getNextStatisticsEvent(event.time);
-                  registerEvent(newEvent);
+                  handleCountEvent(event);
                 }
             }
         }

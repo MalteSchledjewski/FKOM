@@ -19,7 +19,7 @@ int main()
     }
   std::function<bool(Packet&, Packet&)> earlierFun = earlier;
   std::function<short(std::vector<Worker>&,Packet&)> which = whichFree;
-  DistributedSimulation sim(vecPackGen,vecWorker,false,limit,earlierFun,which,5,0.001);
+  DistributedSimulation sim(vecPackGen,vecWorker,false,limit,earlierFun,which,5,0.0001);
   sim.run();
   return 0;
 }

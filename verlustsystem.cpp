@@ -19,7 +19,7 @@ int main()
     }
   std::function<bool(Packet&, Packet&)> earlierFun = earlier;
   std::function<short(std::vector<Worker>&,Packet&)> which = whichFree;
-  DistributedSimulation sim(vecPackGen,vecWorker,true,0,earlierFun,which,0,0.0001);
+  DistributedSimulation sim(vecPackGen,vecWorker,true,0,earlierFun,which,0,0.00001);
   sim.run();
 
   ErlangB stats(lambda,m,numberOfWorker);

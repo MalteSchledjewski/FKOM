@@ -40,6 +40,8 @@ public:
              DistributedSimulation &parent);
   void run();
 
+
+
 private:
   DistributedSimulation& _parent;
   EventQueue eventQueue;
@@ -75,6 +77,12 @@ private:
   std::shared_ptr<Packet> enqueue(Packet packet, double currentTime);
   std::shared_ptr<Packet> assign(Packet packet, double currentTime);
   Packet getNextFromQueue(double currentTime);
+  void logDroppedPacket(double currentTime, std::shared_ptr<Packet> lostPacket);
+  void logFinishedPacket(Packet finishedPacket);
+  void logCount();
+  void handleNewPacketEvent(double currentTime, Event event);
+  void handlePacketFinishedEvent(Event event, double currentTime);
+  void handleCountEvent(Event event);
 };
 
 #endif // SIMULATION_H
