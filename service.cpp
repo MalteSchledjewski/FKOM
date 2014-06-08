@@ -2,11 +2,11 @@
 
 Service::Service(std::vector<Worker> worker, std::function<short(std::vector<Worker> &,Packet&)> wWorker):maxLambda([&]()->double {
                                                                                                                     double maxLam = 0;
-                                                                                                                    for(size_t i = 0; i<workers.size();++i)
+                                                                                                                    for(size_t i = 0; i<worker.size();++i)
 {
-  if(workers[i].lambda > maxLam)
+  if(worker[i].lambda > maxLam)
     {
-      maxLam = workers[i].lambda;
+      maxLam = worker[i].lambda;
     }
 }
 return maxLam;
