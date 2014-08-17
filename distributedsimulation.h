@@ -22,7 +22,7 @@ public:
   void printStatistics();
 private:
   const double precission;
-  const size_t numberOfThreads {std::thread::hardware_concurrency()};
+  const size_t numberOfThreads = CORES;//{std::thread::hardware_concurrency()};
   StatisticsAggregate statPacketDropped;
   StatisticsAggregate statMoreThanNPackets;
   StatisticsAggregate statPacketsInWorker;

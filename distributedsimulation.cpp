@@ -86,7 +86,7 @@ void DistributedSimulation::run()
 {
   for(size_t index = 0; index < numberOfThreads;++index)
     {
-      std::cout << "starting worker " << index << std::endl;
+//      std::cout << "starting worker " << index << std::endl;
       simulationThreads.emplace_back(startSimulation,_packGen,_workers,_limited,_limit,_earlier,_whichWorker,std::ref(statPacketDropped),
                                      std::ref(statMoreThanNPackets),
                                      std::ref(statPacketsInWorker), std::ref(statPacketsInQueue), std::ref(statPacketsInSystem),
@@ -95,17 +95,17 @@ void DistributedSimulation::run()
 
     }
 
-  do
-    {
-      std::this_thread::sleep_for(std::chrono::seconds(5));
-      printStatistics();
-    }
-  while(!precissionSatisfied());
+//  do
+//    {
+//      std::this_thread::sleep_for(std::chrono::seconds(5));
+//      printStatistics();
+//    }
+//  while(!precissionSatisfied());
 
   for(size_t index = 0; index < numberOfThreads;++index)
     {
       simulationThreads[index].join();
-      std::cout << "stopped worker "<< index << std::endl;
+//      std::cout << "stopped worker "<< index << std::endl;
     }
   printStatistics();
 

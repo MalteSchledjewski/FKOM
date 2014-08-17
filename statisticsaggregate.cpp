@@ -10,26 +10,24 @@ StatisticsAggregate::StatisticsAggregate(double precission): precission(precissi
 
 void StatisticsAggregate::log(double sum, double sumOfSquares)
 {
-  _mutex.lock();
+  std::lock_guard<std::mutex> lock(_mutex);
   _sum += sum;
   _sumSquare += sumOfSquares;
   ++count;
   double avgSum = _sum/count;
   double avgSumSquares = _sumSquare/count;
   double totalVariance = (avgSumSquares - avgSum*avgSum)/(BLOCK_SIZE * count);
-  _mutex.unlock();
   standardDeviation = std::sqrt(totalVariance);
 }
 
 double StatisticsAggregate::getExpectedValue()
 {
-  _mutex.lock();
+  std::lock_guard<std::mutex> lock(_mutex);
   double expectedValue{0};
   if(count!=0)
     {
       expectedValue = _sum/count;
     }
-  _mutex.unlock();
   return expectedValue;
 }
 
